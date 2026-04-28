@@ -60,13 +60,15 @@ def run_system():
     
     print("╚" + "═"*4 + "╩" + "═"*38 + "╩" + "═"*12 + "╩" + "═"*14 + "╝")
 
-    # --- PERFORMANCE STATS ---
+   # --- PERFORMANCE STATS ---
     print(f"\n[STAT] Total Scanned : {TOTAL_PATIENTS:,} Patients")
-    print(f
     print(f"[STAT] Concurrency   : {cores} Processes (Parallel Mode)")
     print(f"[STAT] Time Elapsed  : {end_con:.2f} seconds")
     print(f"[STAT] Speedup vs Seq: 1.01x (Optimized)")
     print("\n" + "═"*60)
+
+if __name__ == "__main__":
+    run_system()
 
 if __name__ == "__main__":
     run_system()

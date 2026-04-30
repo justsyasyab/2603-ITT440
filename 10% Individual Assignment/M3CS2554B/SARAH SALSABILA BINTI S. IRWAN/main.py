@@ -1,74 +1,176 @@
+import random
 import time
-import multiprocessing
-from dna_processor import generate_dna_data, calculate_mismatch, process_chunk
+from datetime import datetime, timedelta
+from threading import Thread
+from multiprocessing import Pool
 
-def run_system():
-    # Setup Data
-    TOTAL_PATIENTS = 1_000_000
-    DISEASE_MARKER = "ATCG" * 25  # The sickness sequence we are looking for
-    
-    print("\n" + "═"*60)
-    print("   🧬 BIOMEDICAL CONCURRENT DIAGNOSTIC SYSTEM v2.0 🧬")
-    print("═"*60)
-    
-    print(f"[*] Generating {TOTAL_PATIENTS:,} Patient DNA Records...")
-    data = generate_dna_data(TOTAL_PATIENTS)
-    
-    # Visual Pulse/Loading Effect
-    print("[*] Accessing GitHub Codespace CPU Cores...", end="", flush=True)
-    for _ in range(3):
-        time.sleep(0.4)
-        print(".", end="", flush=True)
-    
-    cores = multiprocessing.cpu_count()
-    print(f"\n[!] {cores} CORES DETECTED. INITIALIZING CONCURRENT SCAN.")
+# -------------------------------
+# CONFIGURATION
+# -------------------------------
+NUM_ITEMS = 100000  # Large dataset
+NUM_THREADS = 4     # For threading
+NUM_PROCESSES = 2   # You have 2 CPUs
 
-    # --- CONCURRENT SCANNING ---
-    chunk_size = TOTAL_PATIENTS // cores
-    chunks = [data[i:i + chunk_size] for i in range(0, len(data), chunk_size)]
-    
-    print(f"[*] Scanning records for 'DIABETES-TYPE-2' Marker...")
-    start_time = time.time()
-    with multiprocessing.Pool(processes=cores) as pool:
-        results = pool.starmap(process_chunk, [(c, DISEASE_MARKER) for c in chunks])
-    
-    # Flatten results
-    all_scores = [score for sublist in results for score in sublist]
-    end_con = time.time() - start_time
+CATEGORIES = ["Dairy", "Meat", "Drinks", "Vegetables"]
 
-    # --- RANKING & SICKNESS IDENTIFICATION ---
-    # We find the top 10 patients with the LOWEST mismatch (Highest Risk)
-    combined = list(zip(data, all_scores))
-    top_10 = sorted(combined, key=lambda x: x[1])[:10]
+ITEM_NAMES = {
+    "Dairy": ["Milk", "Cheese", "Yogurt"],
+    "Meat": ["Chicken", "Beef", "Fish"],
+    "Drinks": ["Juice", "Soda", "Water"],
+    "Vegetables": ["Carrot", "Broccoli", "Spinach"]
+}
 
-    print("\n" + "╔" + "═"*72 + "╗")
-    print("║" + " "*22 + "RANKED GENETIC RISK REPORT" + " "*24 + "║")
-    print("╠" + "═"*4 + "╦" + "═"*38 + "╦" + "═"*12 + "╦" + "═"*14 + "╣")
-    print(f"║ {'ID':<2} ║ {'Patient DNA Sequence Sample':<36} ║ {'Mismatch':<10} ║ {'Risk Level':<12} ║")
-    print("╠" + "═"*4 + "╬" + "═"*38 + "╬" + "═"*12 + "╬" + "═"*14 + "╣")
-    
-    for i, (dna, score) in enumerate(top_10, 1):
-        # Add "Fun" Logic: Color/Emoji based on score
-        if score < 72:
-            risk = "🔴 CRITICAL"
-        elif score < 75:
-            risk = "🟡 HIGH"
+# -------------------------------
+# DATA GENERATION
+# -------------------------------
+def generate_data(n):
+    data = []
+    today = datetime.now()
+
+    for _ in range(n):
+        category = random.choice(CATEGORIES)
+        item = random.choice(ITEM_NAMES[category])
+
+        expiry = today + timedelta(days=random.randint(-5, 10))
+        consumed = random.choice([True, False])
+
+        data.append({
+            "item": item,
+            "category": category,
+            "expiry": expiry,
+            "consumed": consumed
+        })
+
+    return data
+
+# -------------------------------
+# ANALYSIS FUNCTION
+# -------------------------------
+def analyze_chunk(chunk):
+    today = datetime.now()
+
+    expired = 0
+    consumed = 0
+    wasted = 0
+    category_count = {cat: 0 for cat in CATEGORIES}
+
+    for item in chunk:
+        category_count[item["category"]] += 1
+
+        if item["expiry"] < today:
+            expired += 1
+
+        if item["consumed"]:
+            consumed += 1
         else:
-            risk = "🟢 MONITOR"
-            
-        print(f"║ {i:02d} ║ {dna[:33]}... ║ {score:<10} ║ {risk:<12} ║")
-    
-    print("╚" + "═"*4 + "╩" + "═"*38 + "╩" + "═"*12 + "╩" + "═"*14 + "╝")
+            wasted += 1
 
-   # --- PERFORMANCE STATS ---
-    print(f"\n[STAT] Total Scanned : {TOTAL_PATIENTS:,} Patients")
-    print(f"[STAT] Concurrency   : {cores} Processes (Parallel Mode)")
-    print(f"[STAT] Time Elapsed  : {end_con:.2f} seconds")
-    print(f"[STAT] Speedup vs Seq: 1.01x (Optimized)")
-    print("\n" + "═"*60)
+    return expired, consumed, wasted, category_count
 
+# -------------------------------
+# HELPER TO MERGE RESULTS
+# -------------------------------
+def merge_results(results):
+    total_expired = total_consumed = total_wasted = 0
+    final_category = {cat: 0 for cat in CATEGORIES}
+
+    for expired, consumed, wasted, category in results:
+        total_expired += expired
+        total_consumed += consumed
+        total_wasted += wasted
+
+        for cat in CATEGORIES:
+            final_category[cat] += category[cat]
+
+    return total_expired, total_consumed, total_wasted, final_category
+
+# -------------------------------
+# SEQUENTIAL
+# -------------------------------
+def run_sequential(data):
+    start = time.time()
+    result = analyze_chunk(data)
+    end = time.time()
+
+    return result, end - start
+
+# -------------------------------
+# THREADING
+# -------------------------------
+def run_threading(data):
+    start = time.time()
+
+    chunk_size = len(data) // NUM_THREADS
+    threads = []
+    results = []
+
+    def worker(chunk):
+        results.append(analyze_chunk(chunk))
+
+    for i in range(NUM_THREADS):
+        chunk = data[i * chunk_size:(i + 1) * chunk_size]
+        t = Thread(target=worker, args=(chunk,))
+        threads.append(t)
+        t.start()
+
+    for t in threads:
+        t.join()
+
+    final_result = merge_results(results)
+    end = time.time()
+
+    return final_result, end - start
+
+# -------------------------------
+# MULTIPROCESSING
+# -------------------------------
+def run_multiprocessing(data):
+    start = time.time()
+
+    chunk_size = len(data) // NUM_PROCESSES
+    chunks = [data[i * chunk_size:(i + 1) * chunk_size] for i in range(NUM_PROCESSES)]
+
+    with Pool(processes=NUM_PROCESSES) as pool:
+        results = pool.map(analyze_chunk, chunks)
+
+    final_result = merge_results(results)
+    end = time.time()
+
+    return final_result, end - start
+
+# -------------------------------
+# DISPLAY RESULTS
+# -------------------------------
+def display(name, result, duration):
+    expired, consumed, wasted, category = result
+
+    print(f"\n{name} RESULTS")
+    print("-" * 30)
+    print(f"Expired Items: {expired}")
+    print(f"Consumed Items: {consumed}")
+    print(f"Wasted Items: {wasted}")
+
+    print("\nCategory Count:")
+    for cat, count in category.items():
+        print(f"{cat}: {count}")
+
+    print(f"\nTime Taken: {duration:.2f} seconds")
+
+# -------------------------------
+# MAIN
+# -------------------------------
 if __name__ == "__main__":
-    run_system()
+    print("Generating data...")
+    data = generate_data(NUM_ITEMS)
 
-if __name__ == "__main__":
-    run_system()
+    # Sequential
+    seq_result, seq_time = run_sequential(data)
+    display("SEQUENTIAL", seq_result, seq_time)
+
+    # Threading
+    thread_result, thread_time = run_threading(data)
+    display("THREADING", thread_result, thread_time)
+
+    # Multiprocessing
+    mp_result, mp_time = run_multiprocessing(data)
+    display("MULTIPROCESSING", mp_result, mp_time)

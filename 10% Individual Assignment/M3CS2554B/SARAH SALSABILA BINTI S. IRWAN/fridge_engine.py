@@ -1,4 +1,5 @@
 import random
+<<<<<<< HEAD
 import time
 from datetime import datetime, timedelta
 
@@ -28,10 +29,48 @@ def analyze_chunk(chunk):
     Added a tiny sleep to simulate 'Sensor I/O' time so Parallelism actually wins.
     """
     today = datetime.now()
+=======
+from datetime import datetime, timedelta
+
+CATEGORIES = ["Dairy", "Meat", "Drinks", "Vegetables"]
+
+FREEZER_ITEMS = ["Ice Cream", "Frozen Meat", "Frozen Pizza"]
+FRIDGE_ITEMS = ["Milk", "Juice", "Vegetables", "Eggs"]
+
+def generate_data(n):
+    data = []
+    today = datetime.now()
+
+    for _ in range(n):
+        section = random.choice(["FREEZER", "FRIDGE"])
+
+        if section == "FREEZER":
+            item = random.choice(FREEZER_ITEMS)
+        else:
+            item = random.choice(FRIDGE_ITEMS)
+
+        expiry = today + timedelta(days=random.randint(-5, 10))
+        consumed = random.choice([True, False])
+
+        data.append({
+            "section": section,
+            "item": item,
+            "expiry": expiry,
+            "consumed": consumed
+        })
+
+    return data
+
+
+def analyze_chunk(chunk):
+    today = datetime.now()
+
+>>>>>>> c25b537f3538f1038d370eef21086cd609b8bdd9
     freezer = {"count": 0, "expired": 0}
     fridge = {"count": 0, "expired": 0}
 
     for item in chunk:
+<<<<<<< HEAD
         # Simulate sensor latency (Required to show multiprocessing advantage)
         if item["cat"] in ["Meat", "Frozen"]:
             time.sleep(0.0001) 
@@ -52,3 +91,32 @@ def merge_results(results):
         f_freezer["count"] += fz["count"]; f_freezer["expired"] += fz["expired"]
         f_fridge["count"] += fr["count"]; f_fridge["expired"] += fr["expired"]
     return f_freezer, f_fridge
+=======
+        section = item["section"]
+
+        if section == "FREEZER":
+            freezer["count"] += 1
+            if item["expiry"] < today:
+                freezer["expired"] += 1
+
+        else:
+            fridge["count"] += 1
+            if item["expiry"] < today:
+                fridge["expired"] += 1
+
+    return freezer, fridge
+
+
+def merge_results(results):
+    final_freezer = {"count": 0, "expired": 0}
+    final_fridge = {"count": 0, "expired": 0}
+
+    for freezer, fridge in results:
+        final_freezer["count"] += freezer["count"]
+        final_freezer["expired"] += freezer["expired"]
+
+        final_fridge["count"] += fridge["count"]
+        final_fridge["expired"] += fridge["expired"]
+
+    return final_freezer, final_fridge
+>>>>>>> c25b537f3538f1038d370eef21086cd609b8bdd9

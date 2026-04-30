@@ -1,1 +1,2 @@
-# IRDINA SOFEA BINTI YONI
+# Parallel Genetic Algorithm Optimizer
+

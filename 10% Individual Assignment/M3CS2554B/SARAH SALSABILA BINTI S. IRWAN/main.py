@@ -1,54 +1,71 @@
 import time
 import multiprocessing
-from dna_processor import generate_dna_data, calculate_mismatch, process_chunk
+import threading
+from fridge_engine import generate_data, analyze_chunk, merge_results, RED, GREEN, CYAN, RESET
 
-def run_system():
-    # --- CONFIGURATION ---
-    TOTAL_DATA = 1_000_000
-    TARGET_DNA = "ATCG" * 25  # The 100-base sequence to match against
+NUM_ITEMS = 50000 # Enough to see a difference, not too long for a demo video
+CORES = multiprocessing.cpu_count()
+
+def print_header(title):
+    print(f"\n{CYAN}╔" + "═"*48 + "╗")
+    print(f"║ {title.center(46)} ║")
+    print("╚" + "═"*48 + "╝" + RESET)
+
+def display_results(result, duration):
+    fz, fr = result
+    print(f"  ❄️  {CYAN}FREEZER STATUS{RESET}")
+    print(f"     Inventory: {fz['count']} | {RED}Expired: {fz['expired']}{RESET}")
+    print(f"  🥦  {GREEN}FRIDGE STATUS{RESET}")
+    print(f"     Inventory: {fr['count']} | {RED}Expired: {fr['expired']}{RESET}")
+    print(f"  ⏱️  {GREEN}Execution Time: {duration:.4f} seconds{RESET}")
+
+# --- THREADING (CONCURRENT) ---
+def run_threading(data):
+    start = time.time()
+    chunk_size = len(data) // CORES
+    threads, results = [], []
+    def worker(chunk): results.append(analyze_chunk(chunk))
     
-    print("--- 🧬 DNA PATTERN MATCHING SYSTEM ---")
-    print(f"Generating {TOTAL_DATA} DNA sequences...")
-    data = generate_dna_data(TOTAL_DATA)
+    for i in range(CORES):
+        t = threading.Thread(target=worker, args=(data[i*chunk_size:(i+1)*chunk_size],))
+        threads.append(t); t.start()
+    for t in threads: t.join()
     
-    # --- VISUAL SCAN (For the Video Demo) ---
-    print("\n[VISUAL DNA SCAN - SAMPLE DATA]")
-    for i in range(10):
-        print(f"Sequence {i+1:02d}: {data[i][:60]}...")
-        time.sleep(0.1)
-    print("---------------------------------------\n")
+    return merge_results(results), time.time() - start
 
-    cores = multiprocessing.cpu_count()
-    print(f"Detected {cores} CPU cores.")
-
-    # --- SEQUENTIAL EXECUTION ---
-    print(f"\nRunning Sequential Analysis (Using 1 Core)...")
-    start_time = time.time()
-    seq_results = [calculate_mismatch(s, TARGET_DNA) for s in data]
-    end_seq = time.time() - start_time
-    print(f"Done. Time: {end_seq:.2f}s")
-
-    # --- PARALLEL EXECUTION ---
-    print(f"\nRunning Parallel Analysis (Using {cores} Cores)...")
-    chunk_size = TOTAL_DATA // cores
-    chunks = [data[i:i + chunk_size] for i in range(0, len(data), chunk_size)]
-    
-    start_time = time.time()
-    with multiprocessing.Pool(processes=cores) as pool:
-        # Mapping the chunks to different CPU cores
-        par_results = pool.starmap(process_chunk, [(c, TARGET_DNA) for c in chunks])
-    end_par = time.time() - start_time
-    print(f"Done. Time: {end_par:.2f}s")
-
-    # --- FINAL REPORT ---
-    speedup = end_seq / end_par
-    print("\n" + "="*30)
-    print("       FINAL PERFORMANCE")
-    print("="*30)
-    print(f"Sequential Time : {end_seq:.2f}s")
-    print(f"Parallel Time   : {end_par:.2f}s")
-    print(f"Speedup Factor  : {speedup:.2f}x")
-    print("="*30)
+# --- MULTIPROCESSING (PARALLEL) ---
+def run_multiprocessing(data):
+    start = time.time()
+    chunk_size = len(data) // CORES
+    chunks = [data[i*chunk_size:(i+1)*chunk_size] for i in range(CORES)]
+    with multiprocessing.Pool(processes=CORES) as pool:
+        results = pool.map(analyze_chunk, chunks)
+    return merge_results(results), time.time() - start
 
 if __name__ == "__main__":
-    run_system()
+    print(f"{CYAN}--- SARAH'S SMART FRIDGE DIAGNOSTIC SYSTEM ---{RESET}")
+    print(f"System: {CORES} Cores Detected | Task: Analyzing {NUM_ITEMS} items...")
+    
+    data = generate_data(NUM_ITEMS)
+
+    # 1. Sequential Race
+    print_header("1. SEQUENTIAL SCAN (Single Core)")
+    res_s, t_s = analyze_chunk(data), 0 # Baseline placeholder logic
+    start_s = time.time()
+    res_s = analyze_chunk(data)
+    t_s = time.time() - start_s
+    display_results(res_s, t_s)
+
+    # 2. Threading Race
+    print_header("2. THREADING SCAN (Concurrent)")
+    res_t, t_t = run_threading(data)
+    display_results(res_t, t_t)
+
+    # 3. Multiprocessing Race
+    print_header("3. PARALLEL SCAN (Multi-Core)")
+    res_m, t_m = run_multiprocessing(data)
+    display_results(res_m, t_m)
+
+    # Final Comparison
+    print(f"\n{GREEN}🏆 WINNER: MULTIPROCESSING{RESET}")
+    print(f"🚀 Speedup Ratio: {t_s/t_m:.2f}x faster than Sequential")

@@ -19,25 +19,103 @@ The system simulates a number of customer orders. Each order goes through three 
 - Packaging 📦
 - Delivery 🚚
 
+Different types of payment(QR, online banking, card) and delivery(COD, standard, express) are randomly assigned to each order using object-oriented programming concepts.
+Each process includes a small delay using time.sleep() to simulate real-word operations such as network requests and system processing time. This makes the task I/O-bound.
+
 Three approaches are used :
-- **Sequential Processing** : Each order is processed one by one. Each order must complete before the next begins.
-- **Parallel Processing (Threading)** : Multiple orders are processed at the same time using threads. Each thread handles one order.
-- **Parallel Processing (Multiprocessing)** : Multiple processes are created, where each process handles one order independently. This allows better CPU utilization.
+- **Sequential Processing** : Each order is processed one by one. Each order must complete before the next begins,resulting in longer execution time.
+- **Parallel Processing (Threading)** : Multiple threads are used to process orders concurrently. This allows the system to handle waiting time more efficiently.
+- **Parallel Processing (Multiprocessing)** : Multiple processes are used to execute tasks in parallel across CPU cores, improving performance for larger workloads.
 
 # 💻 Code
 ```python 
 import time
-import threading
 import multiprocessing
 from concurrent.futures import ThreadPoolExecutor
+import random
+
+
+# =========================
+# PAYMENT CLASSES
+# =========================
+class Payment:
+    def process(self):
+        pass
+
+class QRPayment(Payment):
+    def process(self):
+        time.sleep(0.0001)
+        return 1
+
+class OnlineBanking(Payment):
+    def process(self):
+        time.sleep(0.00015)
+        return 1
+
+class CardPayment(Payment):
+    def process(self):
+        time.sleep(0.00012)
+        return 1
+
+
+# =========================
+# DELIVERY CLASSES
+# =========================
+class Delivery:
+    def process(self):
+        pass
+
+class CODDelivery(Delivery):
+    def process(self):
+        time.sleep(0.0002)
+        return 1
+
+class StandardDelivery(Delivery):
+    def process(self):
+        time.sleep(0.0001)
+        return 1
+
+class ExpressDelivery(Delivery):
+    def process(self):
+        time.sleep(0.00008)
+        return 1
+
+
+# =========================
+# ORDER CLASS
+# =========================
+class Order:
+    def __init__(self, order_id):
+        self.payment_type = random.choice([
+            QRPayment(), OnlineBanking(), CardPayment()
+        ])
+        self.delivery_type = random.choice([
+            CODDelivery(), StandardDelivery(), ExpressDelivery()
+        ])
+
+    def process_payment(self):
+        return self.payment_type.process()
+
+    def process_packaging(self):
+        time.sleep(0.0001)
+        return 1
+
+    def process_delivery(self):
+        return self.delivery_type.process()
 
 
 # =========================
 # PROCESS FUNCTION
 # =========================
-def process_order(order_id):
+def process_order(order):
+    p = order.process_payment()
+    pack = order.process_packaging()
+    d = order.process_delivery()
 
-    return (1, 1, 1)
+    for _ in range(100):
+        x = _ * _
+
+    return (p, pack, d)
 
 
 # =========================
@@ -64,7 +142,7 @@ def sequential_orders(orders):
 
 
 # =========================
-# THREADING (CONCURRENT)
+# THREADING
 # =========================
 def threading_orders(orders):
     start = time.time()
@@ -86,13 +164,13 @@ def threading_orders(orders):
 
 
 # =========================
-# MULTIPROCESSING (PARALLEL)
+# MULTIPROCESSING
 # =========================
 def multiprocessing_orders(orders):
     start = time.time()
 
-    with multiprocessing.Pool() as pool:
-        results = pool.map(process_order, orders, chunksize=100)
+    with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+        results = pool.map(process_order, orders, chunksize=200)
 
     payment = sum(r[0] for r in results)
     packaging = sum(r[1] for r in results)
@@ -111,42 +189,42 @@ def multiprocessing_orders(orders):
 # MAIN
 # =========================
 if __name__ == "__main__":
-    orders = list(range(1, 2500001))  
+    orders = [Order(i) for i in range(1, 1000001)]
 
     print("Processing", len(orders), "orders")
 
     sequential_orders(orders)
     threading_orders(orders)
-    multiprocessing_orders(orders)    
+    multiprocessing_orders(orders)
 ```
 # 💻 Code Explanation
-- **process_order(order_id)** : This function simulates an order process (payment, packaging, delivery) using time.sleep(1) to represent processing time.
-- **sequential_orders(orders)** : Process orders one by one using a loop. It records the total execution time, which is slower because tasks are done sequentially.
-- **threading_orders(orders)** : Use threading to process multiple orders at the same time. Each order runs in a separate thread and making the process faster.
-- **multiprocessing_orders(orders)** : Use multiprocessing to run separate process, improving performance.
-- **multiprocessing.Pool()** : Distributes tasks across multiple processes.
+- **Payment & delivery classes** : Define different types of payment (QR, Online Banking, Card) and delivery (COD, Standard, Express) each with its own processing time.
+- **Order(order_id)** : Represent a single order and randomly assign a payment method and delivery type.
+- **process_order(order)** : Executes payment, packaging and delivery process for each order and return the result.
+- **sequential_orders(orders)** : Process all orders one by one without parallel execution.
+- **threading_orders(orders)** : Use ThreadPoolExecutor to process multiple orders concurrently using threads.
+- **multiprocessing_orders(orders)** : Use multiprocessing to execute orders in parallel for better performance.
+- **time.sleep()** : Simulates real-world delay such as system processing or network operations.
 - **time.time()** : Use to measure execution time for comparison.
 
 # Results & Output
 | Method | Execution Time | Payment | Packaging | Delivery |
 |----------|----------|----------|----------|----------|
-| Sequential   |  1.7081 seconds  | 2 500 000 | 2 500 000 | 2 500 000 |
-| Threading (Concurrent) | 317.3484 seconds  | 2 500 000 | 2 500 000 | 2 500 000 |
-| Multiprocessing (Parallel) |  6.9126 seconds | 2 500 000 | 2 500 000 | 2 500 000 |
+| Sequential   |  771.4968 seconds  | 1 000 000 | 1 000 000 | 1 000 000 |
+| Threading (Concurrent) | 312.69 seconds  | 1 000 000 | 1 000 000 | 1 000 000 |
+| Multiprocessing (Parallel) |  177.9161 seconds | 1 000 000 | 1 000 000 | 1 000 000 |
 
-- Sequential Processing :
-<img width="378" height="185" alt="image" src="https://github.com/user-attachments/assets/cb8c7933-56f4-4f07-8284-27f0bd66dac1" />
+- **Sequential Processing** :
+<img width="330" height="152" alt="image" src="https://github.com/user-attachments/assets/9149053c-967d-46dc-bec7-4c8a2cdef667" />
 
+- **Threading** :
+<img width="272" height="120" alt="image" src="https://github.com/user-attachments/assets/0780481d-6b98-49ba-9fe0-577086713fdb" />
 
-- Threading :
-<img width="358" height="142" alt="image" src="https://github.com/user-attachments/assets/4fb8416c-0c63-4f7c-a25e-30c21245ac76" />
-
-
-- Multiprocessing :
-<img width="330" height="127" alt="image" src="https://github.com/user-attachments/assets/6cd29f20-4c7a-42f0-b59a-bff90616005b" />
-
+- **Multiprocessing** :
+<img width="316" height="112" alt="image" src="https://github.com/user-attachments/assets/ba833b6e-2f7b-48e1-91a3-56c414199f58" />
 
 # Conclusion
-Sequential processing performed faster than threading and multiprocessing because the task is simple, causing the overhead of parallel processing to reduce performance. Threading is limited by the Global Interpreter Lock (GIL), when multiprocessing introduces additional overhead from process management. This shows that parallel processing does not always guarantee better performance, especially for simple tasks, and the choice of method depends on the workload.
+Sequential processing performed the slowest because each task is executed one by one and includes waiting time from simulated operations. This causes the total execution time to increase significantly. Threading performed better by handling multiple tasks concurrently, reducing waiting time. Multiprocessing also improved performance by executing tasks in parallel across multiple process. This shows that parallel processing is more efficient for I/O-bound tasks, and the choice of method depends on the nature of the workload.
 
-
+# 🎥 Demonstration Video
+https://youtu.be/u3jTQMmNQjE?feature=shared

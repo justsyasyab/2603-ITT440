@@ -215,9 +215,9 @@ if __name__ == "__main__":
 ### 🏆 Results Summary (Actual Benchmark)
 | Technique | Execution Time | Speedup | Status |
 | :--- | :--- | :--- | :--- |
-| **Sequential** | 1.6542s | 1.00x |
-| **Concurrent** | 0.8371s | 1.97x |
-| **Parallel** | **0.8825s** | **1.87x** | 
+| **Sequential** | 0.1706s | 1.00x |
+| **Concurrent** | 0.1247s | 1.37x |
+| **Parallel** | **0.1614s** | **1.06x** | 
 
 ### 🔍 Execution Comparison
 | Model | Core Usage | Mechanism |
@@ -235,7 +235,7 @@ The following video demonstrates the **Parallel Smart Fridge Analyzer** in actio
 *   **Real-time Analysis:** Scanning for expired inventory.
 *   **Performance Benchmark:** A side-by-side comparison of **Sequential**, **Concurrent**, and **Parallel** execution times, featuring the generated bar graph.
 
-[**▶️ Click here to watch the Demonstration Video**](https://www.youtube.com/YOUR_VIDEO_LINK_HERE)
+[**▶️ Click here to watch the Demonstration Video**]([https://www.youtube.com/YOUR_VIDEO_LINK_HERE](https://youtu.be/NPh9RIhtkvI?si=hi1MtCGKyiYOVwIq))
 
 ---
 

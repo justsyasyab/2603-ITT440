@@ -227,6 +227,31 @@ if __name__ == "__main__":
 | **Parallel** | **All Cores** | **True Parallelism** |
 ---
 
+# ❄️ Smart Fridge Inventory Analyzer
+
+## 📖 User Manual: Interactive Menu
+Once the application is launched via `python3 main.py`, use the following menu options to interact with the system:
+
+### **1. View FRIDGE Items (Dairy/Meat)**
+* **Selection**: Enter `1`.
+* **Function**: Scans the primary refrigeration section.
+* **Display**: Shows a list of items like "Veg" or "Dairy," their expiry dates, and whether they have been consumed.
+
+### **2. View FREEZER Items (Frozen)**
+* **Selection**: Enter `2`.
+* **Function**: Specifically monitors long-term storage items.
+* **Display**: Lists items assigned to the "FREEZER" section, such as "Meat".
+
+### **3. View EXPIRED Items**
+* **Selection**: Enter `3`.
+* **Function**: Filters the entire inventory for items that are past their expiry date and remain unconsumed.
+* **Visual Aid**: Expired items are flagged in **RED** to help users prioritize food waste reduction.
+
+### **4. Close Fridge & Run Benchmarks**
+* **Selection**: Enter `4`.
+* **Function**: Terminates the user interface and triggers the technical performance analysis.
+* **Output**: Generates a **Performance Graph** and a detailed **Results Summary** comparing Sequential, Concurrent, and Parallel execution.
+
 ## 📺 Demonstration Video
 
 The following video demonstrates the **Parallel Smart Fridge Analyzer** in action. It covers:
@@ -242,4 +267,4 @@ The following video demonstrates the **Parallel Smart Fridge Analyzer** in actio
 ### 🎓 Assignment Details
 *   **Course:** ITT440 (Parallel Programming)
 *   **Faculty:** Computer and Mathematical Sciences (FSKM)
-*   **Submission Date:** May 2026
+*   **Submission Date:** 3 May 2026

@@ -235,7 +235,7 @@ The following video demonstrates the **Parallel Smart Fridge Analyzer** in actio
 *   **Real-time Analysis:** Scanning for expired inventory.
 *   **Performance Benchmark:** A side-by-side comparison of **Sequential**, **Concurrent**, and **Parallel** execution times, featuring the generated bar graph.
 
-[**▶️ Click here to watch the Demonstration Video**]([https://www.youtube.com/YOUR_VIDEO_LINK_HERE](https://youtu.be/NPh9RIhtkvI?si=hi1MtCGKyiYOVwIq))
+[**▶️ Click here to watch the Demonstration Video**](https://youtu.be/NPh9RIhtkvI?si=hi1MtCGKyiYOVwIq)
 
 ---
 

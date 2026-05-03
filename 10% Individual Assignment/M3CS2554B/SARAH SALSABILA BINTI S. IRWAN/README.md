@@ -215,9 +215,9 @@ if __name__ == "__main__":
 ### 🏆 Results Summary (Actual Benchmark)
 | Technique | Execution Time | Speedup | Status |
 | :--- | :--- | :--- | :--- |
-| **Sequential** | 0.1706s | 1.00x |
-| **Concurrent** | 0.1247s | 1.37x |
-| **Parallel** | **0.1614s** | **1.06x** | 
+| **Sequential** | 0.1706s | 1.00x |Baseline|
+| **Concurrent** | 0.1247s | 1.37x |Fastest|
+| **Parallel** | **0.1614s** | **1.06x** |Efficient|
 
 ### 🔍 Execution Comparison
 | Model | Core Usage | Mechanism |

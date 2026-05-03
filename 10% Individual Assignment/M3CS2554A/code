@@ -1,0 +1,143 @@
+import time
+import multiprocessing
+from concurrent.futures import ThreadPoolExecutor
+import math
+import random
+import os
+
+# =========================================================
+# GLOBAL CONFIGURATION
+# =========================================================
+TOTAL_VEHICLES = 5000
+MATH_COMPLEXITY = 10**5  # Simulates heavy physics math calculations
+
+# =========================================================
+# DATA LOADER
+# =========================================================
+def load_traffic_data():
+    print(f"✅ Generating/Loading {TOTAL_VEHICLES} Vehicle Agents...")
+    return [i for i in range(1, TOTAL_VEHICLES + 1)]
+
+# =========================================================
+# PHYSICS ENGINE (CORE TASK)
+# =========================================================
+def check_vehicle_physics(v_id):
+    start = time.perf_counter()
+    try:
+        # CPU-bound math task simulating vehicle trajectory logic
+        calc = 0
+        for i in range(MATH_COMPLEXITY):
+            calc += math.sqrt(i) * math.tan(i)
+        
+        duration = round(time.perf_counter() - start, 3)
+        return (v_id, "SUCCESS", duration)
+    except Exception:
+        return (v_id, "FAILED", 0)
+
+# =========================================================
+# CLASSIFICATION LOGIC
+# =========================================================
+def classify_flow(result):
+    _, status, t = result
+    if status == "FAILED": return "FAILED"
+    elif t < 0.05: return "OPTIMAL FLOW"
+    elif t < 0.15: return "HEAVY TRAFFIC"
+    else: return "CONGESTED"
+
+# =========================================================
+# PRINT RESULTS
+# =========================================================
+def print_results(results):
+    print("\n--- SIMULATION SAMPLE (First 15 Vehicles) ---")
+    print(f"{'Vehicle ID':<12} | {'Status':<10} | {'Latency':<10} | {'Traffic Flow'}")
+    print("-" * 65)
+    for r in results[:15]:
+        print(f"{r[0]:<12} | {r[1]:<10} | {r[2]:<10}s | {classify_flow(r)}")
+    print(f"... total: {len(results)} Vehicles Processed")
+
+# =========================================================
+# EXECUTION MODULES
+# =========================================================
+def sequential(vehicles):
+    print("\n[SEQUENTIAL] Running...")
+    start = time.perf_counter()
+    results = [check_vehicle_physics(v) for v in vehicles]
+    total = time.perf_counter() - start
+    print_results(results)
+    print(f"[SEQUENTIAL] Total Time: {total:.2f}s")
+    return total
+
+def threading_version(vehicles):
+    print("\n[THREADING] Running...")
+    start = time.perf_counter()
+    # Using 200 workers to simulate concurrent interleaving
+    with ThreadPoolExecutor(max_workers=200) as executor:
+        results = list(executor.map(check_vehicle_physics, vehicles))
+    total = time.perf_counter() - start
+    print_results(results)
+    print(f"[THREADING] Total Time: {total:.2f}s")
+    return total
+
+def multiprocessing_version(vehicles):
+    print("\n[MULTIPROCESSING] Running...")
+    start = time.perf_counter()
+    # Utilizes all available CPU cores for true parallelism
+    processes = multiprocessing.cpu_count()
+    with multiprocessing.Pool(processes) as pool:
+        results = pool.map(check_vehicle_physics, vehicles)
+    total = time.perf_counter() - start
+    print_results(results)
+    print(f"[MULTIPROCESSING] Total Time: {total:.2f}s")
+    return total
+
+# =========================================================
+# MAIN INTERFACE
+# =========================================================
+def main():
+    vehicles = load_traffic_data()
+    
+    while True:
+        print("\n" + "="*45)
+        print("     SMART CITY TRAFFIC CHECKER MENU")
+        print("="*45)
+        print("1. Sequential Execution")
+        print("2. Threading Execution (Concurrent)")
+        print("3. Multiprocessing Execution (Parallel)")
+        print("4. Run All & Compare Performance")
+        print("5. Exit System")
+
+        choice = input("\nChoose Option (1-5): ")
+
+        if choice == "1":
+            sequential(vehicles)
+        elif choice == "2":
+            threading_version(vehicles)
+        elif choice == "3":
+            multiprocessing_version(vehicles)
+        elif choice == "4":
+            s = sequential(vehicles)
+            t = threading_version(vehicles)
+            m = multiprocessing_version(vehicles)
+            
+            print("\n" + "="*45)
+            print("         PERFORMANCE COMPARISON")
+            print("="*45)
+            print(f"{'Method':<25} | {'Time':<15}")
+            print("-" * 45)
+            print(f"{'Sequential':<25} | {s:<15.2f}s")
+            print(f"{'Threading':<25} | {t:<15.2f}s")
+            print(f"{'Multiprocessing':<25} | {m:<15.2f}s")
+            print("="*45)
+            winner = "MULTIPROCESSING" if m < s and m < t else "OTHER"
+            print(f"WINNER: {winner} (True Parallelism)")
+            
+        elif choice == "5":
+            print("Exiting Simulation. Program Terminated.")
+            break
+        else:
+            print("❌ Invalid Choice, please select 1-5.")
+
+if __name__ == "__main__":
+    # freeze_support is required for Windows compatibility with Multiprocessing
+    multiprocessing.freeze_support()
+    main()

@@ -8,7 +8,9 @@ Course Code: ITT440: Network Programming
 
 Lecturer: Shahadan Bin Saad
 
-Youtube Link : https://www.youtube.com/watch?v=EzCX8cD6PAc&t=6s
+Youtube Link: https://www.youtube.com/watch?v=EzCX8cD6PAc&t=6s
+
+Github Link: https://github.com/NadzmiAmsan/Parallel-Hash-Breaker-with-Performance-Visualizer 
 
 # 🎯 Mission Objective
 In password security auditing, time is the only barrier between a hash and its plaintext. Traditional brute‑force methods test one password at a time, making complex cracking attempts painfully slow.

@@ -4,7 +4,7 @@
 ## 📘 Subject: ITT440 - Parallel Programming
 ## 🏫 Class: M3CS2554A
 ## 📅 Date: April 2025
-## 🎥 Demo Video : 
+## 🎥 Demo Video : https://youtu.be/NUmkmH9TUqg?si=f9P5ph15ca0zE2ZF
 ---
 
 ## 🖥️System Environment

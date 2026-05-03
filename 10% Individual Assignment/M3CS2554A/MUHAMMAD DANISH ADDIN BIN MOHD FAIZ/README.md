@@ -1,9 +1,9 @@
 # Parallel CSV Data Cleaner & Formatter
 ### Course code : ITT440
 ### Lecturer : Shahadan Bin Saad
-### Youtube link :
+### Youtube link : https://youtu.be/NVLpU6UhVAg
 
-
+---
 ## 📌 Overview
 This project demonstrates the use of **parallel programming in Python** to clean and process large-scale CSV datasets efficiently.
 
@@ -25,6 +25,17 @@ In order to find the best way to improve speed, this research compares sequentia
 - Apply different programming techniques
 - Compare execution performance
 - Analyze how data size affects efficiency
+
+---
+
+## System Environment
+
+| Parameter | Details |
+|---|---|
+| OS | Windows 11 |
+| Python Version | Python 3.14 |
+| IDE | Visual Studio Code |
+| CPU Cores | Auto-detected |
 
 ---
 
